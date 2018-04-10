@@ -28,6 +28,7 @@ module.exports = {
     'no-multi-spaces': 'off',
     'space-before-function-paren': 'off',
     'key-spacing': 'off',
-    'no-trailing-spaces': 'off'
+    'no-trailing-spaces': 'off',
+    'vue/valid-v-on': 'off'
   }
 }

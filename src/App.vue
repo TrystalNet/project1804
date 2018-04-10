@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" @keydown.ctrl.83.prevent='onCtrlS'>
     <router-view/>
     <quill-editor v-model='content' ref='myQuillEditor' :options='editorOption' 
       @blur='onEditorBlur($event)' 
@@ -9,7 +9,14 @@
 </template>
 
 <script>
+/* eslint vue/valid-v-on: "off" */
 import db from './localdb'
+
+const saveIt = (db, name, content) => {
+  db.local.put({name,content}).
+  then(res => console.log('saved the content, we think')).
+  catch(err => console.log('the err is ', err))
+}
 
 export default {
   name: 'App',
@@ -19,23 +26,26 @@ export default {
       editorOption: {}
     }
   },
+  computed: {
+    name() {
+      return this.$store.state.name
+    }
+  },
   methods: {
+    onCtrlS: function() {
+      saveIt(db, this.name, this.content)
+    },
     onEditorBlur: function() {
       db.local.put({
-        name: 'home',
+        name: this.name,
         content: this.content
       }).then(res => console.log('saved the content, we think')
       ).catch(err => console.log('the err is ', err))
     },
-    onEditorFocus: function() {
-      console.log('focus')
-    },
+    onEditorFocus: function() { },
     onEditorReady: function() {
-      db.local.get({name:'home'}, result => {
-        var content = result.content
-        console.log('got a result', content)
-        this.content = content
-        // this.content = result.content
+      db.local.get({name:this.name}, result => {
+        this.content = result ? result.content : ''
       })
     }
   }
