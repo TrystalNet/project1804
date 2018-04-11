@@ -1,21 +1,53 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
+  <div class="hello" @keydown.ctrl.83.prevent='onCtrlS'>
+    <h1 v-bind:class="{dirty}">{{ msg }}</h1>
+    <quill-editor :content='content' ref='myQuillEditor' :options='editorOption' 
+      @change='onEditorChange($event)'
+      @blur='onEditorBlur($event)' 
+      @ready='onEditorReady($event)'/>
   </div>
 </template>
 
 <script>
+import { mapState, mapMutations } from 'vuex'
+import db, {saveIt} from '../localdb'
+import {SET_DIRTY, SET_CLEAN, SET_CONTENT} from '../mutation-types'
+
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      msg: 'Project 1804'
+      msg: 'Project 1804',
+      editorOption: {}
+    }
+  },
+  computed: mapState(['name', 'dirty', 'content']),
+  methods: {
+    ...mapMutations([SET_DIRTY, SET_CLEAN, SET_CONTENT]),
+    onCtrlS: function() {
+      saveIt(db, this.name, this.content)
+      this.SET_CLEAN()
+    },
+    onEditorChange: function({html, text, quill}) {
+      this.SET_CONTENT({value:html})
+      this.SET_DIRTY()
+    },
+    onEditorBlur: function() {
+      db.local.put({
+        name: this.name,
+        content: this.content
+      }).then(res => console.log('saved the content, we think')
+      ).catch(err => console.log('the err is ', err))
+    },
+    onEditorReady: function() {
+      db.local.get({name:this.name}, result => {
+        this.SET_CONTENT({value:result ? result.content : ''})
+      })
     }
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1, h2 {
   font-weight: normal;
@@ -30,5 +62,8 @@ li {
 }
 a {
   color: #42b983;
+}
+.dirty {
+  color: red;
 }
 </style>
