@@ -18,7 +18,8 @@ export default {
   data () {
     return {
       msg: 'Project 1804',
-      editorOption: {}
+      editorOption: {},
+      initialLoad: true
     }
   },
   computed: mapState(['name', 'dirty', 'content']),
@@ -29,6 +30,11 @@ export default {
       this.SET_CLEAN()
     },
     onEditorChange: function({html, text, quill}) {
+      console.log('step 5')
+      if (this.initialLoad) {
+        this.initialLoad = false
+        return
+      }
       this.SET_CONTENT({value:html})
       this.SET_DIRTY()
     },
@@ -41,7 +47,9 @@ export default {
     },
     onEditorReady: function() {
       db.local.get({name:this.name}, result => {
+        this.initialLoad = true
         this.SET_CONTENT({value:result ? result.content : ''})
+        this.SET_CLEAN()
       })
     }
   }
