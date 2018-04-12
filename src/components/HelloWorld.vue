@@ -37,14 +37,9 @@ export default {
       }
       this.SET_CONTENT({value:html})
       this.SET_DIRTY()
+      saveIt(db, this.name, this.content)
     },
-    onEditorBlur: function() {
-      db.local.put({
-        name: this.name,
-        content: this.content
-      }).then(res => console.log('saved the content, we think')
-      ).catch(err => console.log('the err is ', err))
-    },
+    onEditorBlur: function() { },
     onEditorReady: function() {
       db.local.get({name:this.name}, result => {
         this.initialLoad = true
