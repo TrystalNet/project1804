@@ -10,7 +10,7 @@
 
 <script>
 import { mapState, mapMutations } from 'vuex'
-import db, {saveIt} from '../localdb'
+import db, {saveIt, debounce} from '../localdb'
 import {SET_DIRTY, SET_CLEAN, SET_CONTENT} from '../mutation-types'
 
 export default {
@@ -19,32 +19,23 @@ export default {
     return {
       msg: 'Project 1804',
       editorOption: {},
-      initialLoad: true
+      saver:null
     }
   },
   computed: mapState(['name', 'dirty', 'content']),
   methods: {
     ...mapMutations([SET_DIRTY, SET_CLEAN, SET_CONTENT]),
-    onCtrlS: function() {
-      saveIt(db, this.name, this.content)
-      this.SET_CLEAN()
-    },
+    onCtrlS: function() { console.log('ignoring control-s') },
     onEditorChange: function({html, text, quill}) {
-      console.log('step 5')
-      if (this.initialLoad) {
-        this.initialLoad = false
-        return
-      }
+      if (this.saver == null) return (this.saver = debounce(saveIt, 2))
       this.SET_CONTENT({value:html})
-      this.SET_DIRTY()
-      saveIt(db, this.name, this.content)
+      this.saver(db, this.name, this.content)
     },
     onEditorBlur: function() { },
     onEditorReady: function() {
       db.local.get({name:this.name}, result => {
-        this.initialLoad = true
+        this.saver = null
         this.SET_CONTENT({value:result ? result.content : ''})
-        this.SET_CLEAN()
       })
     }
   }
